@@ -61,10 +61,14 @@ def depth2cloud(dataset, depth_img_dir, num_images):
     intrinsic = dataset.calib.K_cam2
     width, height = get_image_size(dataset)
     depth_img_list = sorted(os.listdir(depth_img_dir))
+
+    T2 = np.eye(4)
+    T2[0, 3] = dataset.calib.P_rect_20[0, 3] / dataset.calib.P_rect_20[0, 0]
     for depth_img_name in depth_img_list[:num_images]:
         depth_img_path = os.path.join(depth_img_dir, depth_img_name)
         idx = int(os.path.basename(depth_img_path).split('.')[0])
         extrinsic = dataset.poses[idx]
+        extrinsic = extrinsic.dot(np.linalg.inv(T2))
         rgb_img_path = dataset.cam2_files[idx]
         points, colors = _depth2cloud(intrinsic, depth_img_path, rgb_img_path)
         points = points.transpose().astype(np.float64)
@@ -86,10 +90,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--kitti_odometry_path', type=str,
             default='/home/ruanzhiwei/workspace/dataset/dataset')
-    parser.add_argument('--depth_image_path', type=str,
-            default='/home/ruanzhiwei/workspace/dataset/depth/train/2011_10_03_drive_0027_sync/proj_depth/groundtruth/image_02')
     # parser.add_argument('--depth_image_path', type=str,
-    #         default='/home/ruanzhiwei/workspace/dataset/depth/train/2011_10_03_drive_0027_sync/proj_depth/velodyne_raw/image_02')
+    #         default='/home/ruanzhiwei/workspace/dataset/depth/train/2011_10_03_drive_0027_sync/proj_depth/groundtruth/image_02')
+    parser.add_argument('--depth_image_path', type=str,
+            default='/home/ruanzhiwei/workspace/dataset/depth/train/2011_10_03_drive_0027_sync/proj_depth/velodyne_raw/image_02')
     parser.add_argument('--sequence', type=str, default='00')
     parser.add_argument('--num_images', type=int, default=50)
     args = parser.parse_args()
