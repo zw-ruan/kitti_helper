@@ -1,42 +1,9 @@
 import argparse
-import os
-import sys
 
 import cv2
 import numpy as np
 import open3d as o3d
 import pykitti
-
-
-def get_inv_proj_matrix(proj_matrix):
-    inv_proj_matrix = np.zeros((3, 4), dtype=np.float32)
-    inv_proj_matrix[:3, :3] = proj_matrix[:3, :3].transpose()
-    inv_proj_matrix[:, 4] = - proj_matrix[:3, :3].dot(proj_matrix[:, 4])
-    return inv_proj_matrix
-
-
-def parse_pose(filepath):
-    proj_matrix_list = []
-    with open(filepath, 'r') as fin:
-        for line in fin:
-            _inv_proj_matrix = list(map(float, line.strip().split()))
-            _inv_proj_matrix = np.array(_inv_proj_matrix).reshape(3, 4)
-            inv_proj_matrix = np.zeros((4, 4), dtype=np.float32)
-            inv_proj_matrix[:3, :4] = _inv_proj_matrix
-            inv_proj_matrix[3, 3] = 1.0
-
-            proj_matrix_list.append(inv_proj_matrix)
-
-    return proj_matrix_list
-
-
-def parse_camera(filepath):
-    with open(filepath, 'r') as fin:
-        data = fin.readlines()
-    intrinsic = data[2].split(maxsplit=1)[1]
-    intrinsic = list(map(float, intrinsic.split()))
-    intrinsic = np.array(intrinsic).reshape(3, 4)[:3, :3]
-    return intrinsic
 
 
 def build_camera_model(f, w, h, scale=0.001):
